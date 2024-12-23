@@ -8,16 +8,20 @@
 import SwiftUI
 
 struct SongCell: View {
+    
+    let song: SongModel
+    
     var body: some View {
         HStack {
             Color.white
                 .frame(width: 60, height: 60)
                 .cornerRadius(10)
+                .padding(5)
             
             VStack(alignment: .leading) {
-                Text("Unstoppable")
+                Text(song.name)
                     .songNameFont()
-                Text("SIA")
+                Text(song.artist ?? "Unknown Artist")
                     .artistFont()
             }
             
@@ -32,5 +36,5 @@ struct SongCell: View {
 }
 
 #Preview {
-    SongCell()
+    SongCell(song: SongModel(data: Data(), name: "Boulevard of broken dreams", artist: "Green Day", coverImage: Data(), duration: 0))
 }
