@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct Music_Player_AppApp: App {
+struct MusicPlayerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
