@@ -20,6 +20,9 @@ struct PlayerView: View {
                 List {
                     ForEach(viewModel.songs) { song in
                         SongCell(song: song, durationFormateed: viewModel.durationdFormatted)
+                            .onTapGesture {
+                                viewModel.playAudio(song: song)
+                            }
                     }
                 }
                 .listStyle(.plain)
