@@ -10,6 +10,7 @@ import SwiftUI
 struct PlayerView: View {
     
     @StateObject var viewModel = ViewModel()
+    @State var showFiles = false
     
     var body: some View {
         NavigationStack {
@@ -28,7 +29,7 @@ struct PlayerView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        // action
+                        showFiles.toggle()
                     } label: {
                         Image(systemName: "plus")
                             .font(.title2)
@@ -36,6 +37,11 @@ struct PlayerView: View {
                     }
                 }
             }
+            
+            // MARK: - File's sheet
+            .sheet(isPresented: $showFiles, content: {
+                ImportFileManager(songs: $viewModel.songs)
+            })
         }
     }
 }
