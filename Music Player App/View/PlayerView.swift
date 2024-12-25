@@ -37,79 +37,14 @@ struct PlayerView: View {
                     Spacer()
                     
                     // MARK: - Player
-                    VStack {
-                        // MARK: - Mini Player
-                        HStack {
-                            Color.white
-                                .frame(width: frameImage, height: frameImage)
-                            
-                            if !showFullPlayer {
-                                VStack(alignment: .leading) {
-                                    Text("Name")
-                                        .songNameFont()
-                                    Text("Unknown artist")
-                                        .artistFont()
-                                }
-                                .matchedGeometryEffect(id: "Description", in: playerAnimation)
-                                
-                                Spacer()
-                                
-                                CustomButton(image: "play.fill", size: .title) {
-                                    // action
+                    if viewModel.currentSong != nil {
+                        Player()
+                            .frame(height: showFullPlayer ? SizeConstants.fullPlayer : SizeConstants.miniPlayer)
+                            .onTapGesture {
+                                withAnimation(.spring) {
+                                    self.showFullPlayer.toggle()
                                 }
                             }
-                        }
-                        .padding()
-                        .background(showFullPlayer ? .clear : .black.opacity(0.3))
-                        .cornerRadius(10)
-                        .padding()
-                        
-                        // Full Player
-                        if showFullPlayer {
-                            VStack {
-                                Text("Name")
-                                    .songNameFont()
-                                Text("Unknown artist")
-                                    .artistFont()
-                            }
-                            .matchedGeometryEffect(id: "Description", in: playerAnimation)
-                            .padding(.top)
-                            
-                            VStack {
-                                // Duration
-                                HStack {
-                                    Text("00:00")
-                                    Spacer()
-                                    Text("03:27")
-                                }
-                                .durationFont()
-                                .padding()
-                                
-                               // Slider
-                                Divider()
-                                
-                                HStack(spacing: 50) {
-                                    CustomButton(image: "backward.end.fill", size: .title2) {
-                                        // action
-                                    }
-                                    
-                                    CustomButton(image: "play.circle.fill", size: .largeTitle) {
-                                        // action
-                                    }
-                                    
-                                    CustomButton(image: "forward.end.fill", size: .title2) {
-                                        // action
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 40)
-                        }
-                    }
-                    .frame(height: showFullPlayer ? SizeConstants.fullPlayer : SizeConstants.miniPlayer)
-                    .onTapGesture {
-                        withAnimation(.spring) {
-                            self.showFullPlayer.toggle()
-                        }
                     }
                 }
             }
@@ -142,6 +77,114 @@ struct PlayerView: View {
             Image(systemName: image)
                 .foregroundStyle(.white)
                 .font(size)
+        }
+    }
+    
+    //@ViewBuilder
+    private func Player() -> some View {
+        VStack {
+            // MARK: - Mini Player
+            HStack {
+                
+                // Cover
+                if let data = viewModel.currentSong?.coverImage, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: frameImage, height: frameImage)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                } else {
+                    ZStack {
+                        Color.gray
+                            .frame(width: frameImage, height: frameImage)
+                        Image(systemName: "music.note")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: 30)
+                            .foregroundStyle(.white)
+                    }
+                    .cornerRadius(10)
+                }
+                
+                if !showFullPlayer {
+                    
+                    // Description
+                    VStack(alignment: .leading) {
+                        if let currentSong = viewModel.currentSong {
+                            Text(currentSong.name)
+                                .songNameFont()
+                            Text(currentSong.artist ?? "Unknown Artist")
+                                .artistFont()
+                        }
+                    }
+                    .matchedGeometryEffect(id: "Description", in: playerAnimation)
+                    
+                    Spacer()
+                    
+                    CustomButton(image: viewModel.isPlaying ? "pause.fill" : "play.fill", size: .title) {
+                        viewModel.playPause()
+                    }
+                }
+            }
+            .padding()
+            .background(showFullPlayer ? .clear : .black.opacity(0.3))
+            .cornerRadius(10)
+            .padding()
+            
+            // Full Player
+            if showFullPlayer {
+                VStack {
+                    if let currentSong = viewModel.currentSong {
+                        Text(currentSong.name)
+                            .songNameFont()
+                        Text(currentSong.artist ?? "Unknown Artist")
+                            .artistFont()
+                    }
+                }
+                .matchedGeometryEffect(id: "Description", in: playerAnimation)
+                .padding(.top)
+                
+                VStack {
+                    // Duration
+                    HStack {
+                        Text("\(viewModel.durationdFormatted(viewModel.currentTime))")
+                        Spacer()
+                        Text("\(viewModel.durationdFormatted(viewModel.totalTime))")
+                    }
+                    .durationFont()
+                    .padding()
+                    
+                    // Slider
+                    Slider(value: $viewModel.currentTime, in: 0...viewModel.totalTime) { editing in
+                        
+                        if !editing {
+                            viewModel.seekAudio(time: viewModel.currentTime)
+                        }
+                    }
+                    .offset(y: -16)
+                    .accentColor(.white)
+                    .onAppear {
+                        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                            viewModel.updateProgress()
+                        }
+                    }
+                    
+                    HStack(spacing: 50) {
+                        CustomButton(image: "backward.end.fill", size: .title2) {
+                            // action
+                        }
+                        
+                        CustomButton(image: "play.circle.fill", size: .largeTitle) {
+                            // action
+                        }
+                        
+                        CustomButton(image: "forward.end.fill", size: .title2) {
+                            // action
+                        }
+                    }
+                }
+                .padding(.horizontal, 40)
+            }
         }
     }
 }
