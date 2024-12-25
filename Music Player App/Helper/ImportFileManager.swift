@@ -103,9 +103,8 @@ struct ImportFileManager: UIViewControllerRepresentable {
     
     // Метод создаёт и настраивает пикер для выбора аудиофайлов
     func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        // Используем новый конструктор
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.audio])
-        picker.allowsMultipleSelection = false
+        picker.allowsMultipleSelection = true // Разрешаем выбор нескольких файлов
         picker.delegate = context.coordinator
         return picker
     }
@@ -123,46 +122,48 @@ struct ImportFileManager: UIViewControllerRepresentable {
         }
         
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            guard let url = urls.first, url.startAccessingSecurityScopedResource() else { return }
-            defer { url.stopAccessingSecurityScopedResource() }
-            
-            let asset = AVAsset(url: url)
             Task {
-                do {
-                    // Загружаем метаданные и продолжительность асинхронно
-                    let metadata = try await asset.load(.metadata)
-                    let duration = try await asset.load(.duration)
+                for url in urls {
+                    guard url.startAccessingSecurityScopedResource() else { continue }
+                    defer { url.stopAccessingSecurityScopedResource() }
                     
-                    var song = SongModel(data: try Data(contentsOf: url), name: url.lastPathComponent)
-                    
-                    for item in metadata {
-                        if let key = item.commonKey?.rawValue {
-                            switch key {
-                            case AVMetadataKey.commonKeyArtist.rawValue:
-                                song.artist = (try? await item.load(.value) as? String) ?? "Unknown Artist"
-                            case AVMetadataKey.commonKeyArtwork.rawValue:
-                                song.coverImage = (try? await item.load(.value) as? Data)
-                            case AVMetadataKey.commonKeyTitle.rawValue:
-                                song.name = (try? await item.load(.value) as? String) ?? song.name
-                            default:
-                                break
+                    let asset = AVAsset(url: url)
+                    do {
+                        // Загружаем метаданные и продолжительность асинхронно
+                        let metadata = try await asset.load(.metadata)
+                        let duration = try await asset.load(.duration)
+                        
+                        var song = SongModel(data: try Data(contentsOf: url), name: url.lastPathComponent)
+                        
+                        for item in metadata {
+                            if let key = item.commonKey?.rawValue {
+                                switch key {
+                                case AVMetadataKey.commonKeyArtist.rawValue:
+                                    song.artist = (try? await item.load(.value) as? String) ?? "Unknown Artist"
+                                case AVMetadataKey.commonKeyArtwork.rawValue:
+                                    song.coverImage = (try? await item.load(.value) as? Data)
+                                case AVMetadataKey.commonKeyTitle.rawValue:
+                                    song.name = (try? await item.load(.value) as? String) ?? song.name
+                                default:
+                                    break
+                                }
                             }
                         }
-                    }
-                    
-                    // Устанавливаем продолжительность
-                    song.duration = CMTimeGetSeconds(duration)
-                    
-                    // Добавляем песню, если она еще не существует
-                    if !self.parent.songs.contains(where: { $0.name == song.name }) {
-                        DispatchQueue.main.async {
-                            self.parent.songs.append(song)
+                        
+                        // Устанавливаем продолжительность
+                        song.duration = CMTimeGetSeconds(duration)
+                        
+                        // Добавляем песню, если она ещё не существует
+                        if !self.parent.songs.contains(where: { $0.name == song.name }) {
+                            DispatchQueue.main.async {
+                                self.parent.songs.append(song)
+                            }
+                        } else {
+                            print("Song with this name already exists")
                         }
-                    } else {
-                        print("Song with this name already exists")
+                    } catch {
+                        print("Error processing the file: \(error)")
                     }
-                } catch {
-                    print("Error processing the file: \(error)")
                 }
             }
         }
