@@ -91,10 +91,9 @@
 import Foundation
 import SwiftUI
 import AVFoundation
+import RealmSwift
 
 struct ImportFileManager: UIViewControllerRepresentable {
-    
-    @Binding var songs: [SongModel]
     
     // Координатор управляет задачами между SwiftUI и UIKit
     func makeCoordinator() -> Coordinator {
@@ -115,12 +114,16 @@ struct ImportFileManager: UIViewControllerRepresentable {
     // Координатор служит связующим звеном между UIDocumentPicker и ImportFileManager
     class Coordinator: NSObject, UIDocumentPickerDelegate {
         
+        // MARK: - Property
         var parent: ImportFileManager
+        @ObservedResults(SongModel.self) var songs
         
+        // MARK: - Initializer
         init(parent: ImportFileManager) {
             self.parent = parent
         }
         
+        // MARK: - Methods
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
             Task {
                 for url in urls {
@@ -133,7 +136,7 @@ struct ImportFileManager: UIViewControllerRepresentable {
                         let metadata = try await asset.load(.metadata)
                         let duration = try await asset.load(.duration)
                         
-                        var song = SongModel(data: try Data(contentsOf: url), name: url.lastPathComponent)
+                        let song = SongModel(name: url.lastPathComponent, data: try Data(contentsOf: url))
                         
                         for item in metadata {
                             if let key = item.commonKey?.rawValue {
@@ -150,14 +153,13 @@ struct ImportFileManager: UIViewControllerRepresentable {
                             }
                         }
                         
-                        // Устанавливаем продолжительность
+                        // Получаем продолжительность песни
                         song.duration = CMTimeGetSeconds(duration)
                         
-                        // Добавляем песню, если она ещё не существует
-                        if !self.parent.songs.contains(where: { $0.name == song.name }) {
-                            DispatchQueue.main.async {
-                                self.parent.songs.append(song)
-                            }
+                        let isDuplicate = songs.contains { $0.name == song.name && $0.artist == song.artist }
+                        // Добавляем песню в массив, если она ещё не существует
+                        if !isDuplicate {
+                            $songs.append(song)
                         } else {
                             print("Song with this name already exists")
                         }

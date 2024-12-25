@@ -6,12 +6,22 @@
 //
 
 import SwiftUI
+import RealmSwift
 
-struct SongModel: Identifiable {
-    var id = UUID()
-    var data: Data
-    var name: String
-    var artist: String?
-    var coverImage: Data?
-    var duration: TimeInterval?
+class SongModel: Object, ObjectKeyIdentifiable {
+    @Persisted(primaryKey: true) var _id: ObjectId
+    @Persisted var data: Data
+    @Persisted var name: String
+    @Persisted var artist: String?
+    @Persisted var coverImage: Data?
+    @Persisted var duration: TimeInterval?
+    
+    convenience init(name: String, data: Data, artist: String? = nil, coverImage: Data? = nil, duration: TimeInterval? = nil) {
+        self.init()
+        self.data = data
+        self.name = name
+        self.artist = artist
+        self.coverImage = coverImage
+        self.duration = duration
+    }
 }
