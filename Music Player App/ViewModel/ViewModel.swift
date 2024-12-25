@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFAudio
 
-class ViewModel: ObservableObject {
+class ViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
     
     @Published var songs: [SongModel] = []
     @Published var audioPlayer: AVAudioPlayer?
@@ -33,6 +33,7 @@ class ViewModel: ObservableObject {
     func playAudio(song: SongModel) {
         do {
             self.audioPlayer = try AVAudioPlayer(data: song.data)
+            self.audioPlayer?.delegate = self
             self.audioPlayer?.play()
             isPlaying = true
             totalTime = audioPlayer?.duration ?? 0.0
@@ -73,4 +74,12 @@ class ViewModel: ObservableObject {
         guard let player = audioPlayer else { return }
         currentTime = player.currentTime
     }
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        if flag {
+            forward()
+        }
+    }
+    
+    
 }
