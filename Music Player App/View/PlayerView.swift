@@ -87,24 +87,7 @@ struct PlayerView: View {
             HStack {
                 
                 // Cover
-                if let data = viewModel.currentSong?.coverImage, let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: frameImage, height: frameImage)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                } else {
-                    ZStack {
-                        Color.gray
-                            .frame(width: frameImage, height: frameImage)
-                        Image(systemName: "music.note")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(height: 30)
-                            .foregroundStyle(.white)
-                    }
-                    .cornerRadius(10)
-                }
+                SongImageView(imageData: viewModel.currentSong?.coverImage, size: frameImage)
                 
                 if !showFullPlayer {
                     
@@ -171,15 +154,15 @@ struct PlayerView: View {
                     
                     HStack(spacing: 50) {
                         CustomButton(image: "backward.end.fill", size: .title2) {
-                            // action
+                            viewModel.backward()
                         }
                         
-                        CustomButton(image: "play.circle.fill", size: .largeTitle) {
-                            // action
+                        CustomButton(image: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill", size: .largeTitle) {
+                            viewModel.playPause()
                         }
                         
                         CustomButton(image: "forward.end.fill", size: .title2) {
-                            // action
+                            viewModel.forward()
                         }
                     }
                 }

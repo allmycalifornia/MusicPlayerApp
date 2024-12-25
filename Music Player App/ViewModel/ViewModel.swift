@@ -53,6 +53,18 @@ class ViewModel: ObservableObject {
         isPlaying.toggle()
     }
     
+    func forward() {
+        guard let currentIndex = currentIndex else { return }
+        let nextIndex = currentIndex + 1 < songs.count ? currentIndex + 1 : 0
+        playAudio(song: songs[nextIndex])
+    }
+    
+    func backward() {
+        guard let currentIndex = currentIndex else { return }
+        let previousIndex = currentIndex > 0 ? currentIndex - 1 : songs.count - 1
+        playAudio(song: songs[previousIndex])
+    }
+    
     func seekAudio(time: TimeInterval) {
         audioPlayer?.currentTime = time
     }
