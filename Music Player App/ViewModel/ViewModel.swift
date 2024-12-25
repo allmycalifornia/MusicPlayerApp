@@ -81,5 +81,17 @@ class ViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         }
     }
     
+    func stopAudio() {
+        audioPlayer?.stop()
+        self.audioPlayer = nil
+        isPlaying = false
+    }
     
+    func delete(offsets: IndexSet) {
+        if let first = offsets.first {
+            stopAudio()
+            songs.remove(at: first)
+            
+        }
+    }
 }

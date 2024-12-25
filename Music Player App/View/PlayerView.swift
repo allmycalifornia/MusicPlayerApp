@@ -23,6 +23,7 @@ struct PlayerView: View {
             ZStack {
                 BackgroundView()
                 
+                // MARK: - Songs List
                 VStack {
                     List {
                         ForEach(viewModel.songs) { song in
@@ -31,6 +32,7 @@ struct PlayerView: View {
                                     viewModel.playAudio(song: song)
                                 }
                         }
+                        .onDelete(perform: viewModel.delete)
                     }
                     .listStyle(.plain)
                     
