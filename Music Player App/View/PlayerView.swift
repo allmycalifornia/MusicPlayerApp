@@ -9,7 +9,6 @@ import SwiftUI
 import RealmSwift
 
 struct PlayerView: View {
-    
     @ObservedResults(SongModel.self) var songs
     @StateObject var viewModel = ViewModel()
     @State private var showFiles = false
@@ -29,7 +28,7 @@ struct PlayerView: View {
                 VStack {
                     List {
                         ForEach(songs) { song in
-                            SongCell(song: song, durationFormateed: viewModel.durationdFormatted)
+                            SongCell(song: song, durationFormateed: viewModel.durationFormatted)
                                 .onTapGesture {
                                     viewModel.playAudio(song: song)
                                 }
@@ -120,23 +119,43 @@ struct PlayerView: View {
             
             // Full Player
             if showFullPlayer {
-                VStack {
-                    if let currentSong = viewModel.currentSong {
-                        Text(currentSong.name)
-                            .songNameFont()
-                        Text(currentSong.artist ?? "Unknown Artist")
-                            .artistFont()
+                HStack(spacing: 60) {
+                    
+                    Button {
+                        if viewModel.isShuffle {
+                            viewModel.toggleRepeat()  // Переключаем на режим повторения
+                        } else {
+                            viewModel.toggleShuffle()  // Переключаем на режим перемешивания
+                        }
+                    } label: {
+                        Image(systemName: viewModel.isShuffle ? "shuffle" : "repeat")
+                            .font(.title3)
+                            .foregroundStyle(.white)
                     }
+                    
+                    VStack {
+                        if let currentSong = viewModel.currentSong {
+                            Text(currentSong.name)
+                                .songNameFont()
+                            Text(currentSong.artist ?? "Unknown Artist")
+                                .artistFont()
+                        }
+                    }
+                    .matchedGeometryEffect(id: "Description", in: playerAnimation)
+                    .padding(.top)
+                    
+                    // MARK: - Bluetooth Output Picker
+                    AudioOutputPicker()
+                        .frame(width: 44, height: 44)
+                        .foregroundColor(.white) // Цвет кнопки
                 }
-                .matchedGeometryEffect(id: "Description", in: playerAnimation)
-                .padding(.top)
                 
                 VStack {
                     // Duration
                     HStack {
-                        Text("\(viewModel.durationdFormatted(viewModel.currentTime))")
+                        Text("\(viewModel.durationFormatted(viewModel.currentTime))")
                         Spacer()
-                        Text("\(viewModel.durationdFormatted(viewModel.totalTime))")
+                        Text("\(viewModel.durationFormatted(viewModel.totalTime))")
                     }
                     .durationFont()
                     .padding()
