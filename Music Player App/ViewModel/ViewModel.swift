@@ -89,6 +89,20 @@ class ViewModel: NSObject, ObservableObject, AVAudioPlayerDelegate {
         playAudio(song: songs[previousIndex])
     }
     
+    func rewindAudio(time: TimeInterval = 15) {
+        guard let player = audioPlayer else { return }
+        let newTime = player.currentTime - time
+        player.currentTime = max(newTime, 0) // Убедимся, что не перемотаем за начало трека
+        updateProgress() // Обновляем прогресс воспроизведения
+    }
+
+    func fastForwardAudio(time: TimeInterval = 15) {
+        guard let player = audioPlayer else { return }
+        let newTime = player.currentTime + time
+        player.currentTime = min(newTime, player.duration) // Убедимся, что не перемотаем за конец трека
+        updateProgress() // Обновляем прогресс воспроизведения
+    }
+    
     func seekAudio(time: TimeInterval) {
         audioPlayer?.currentTime = time
     }

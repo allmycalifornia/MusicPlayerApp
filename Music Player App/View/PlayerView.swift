@@ -176,6 +176,11 @@ struct PlayerView: View {
                     }
                     
                     HStack(spacing: 50) {
+                        
+                        CustomButton(image: "15.arrow.trianglehead.counterclockwise", size: .title2) {
+                            viewModel.rewindAudio()
+                        }
+                        
                         CustomButton(image: "backward.end.fill", size: .title2) {
                             viewModel.backward()
                         }
@@ -186,6 +191,10 @@ struct PlayerView: View {
                         
                         CustomButton(image: "forward.end.fill", size: .title2) {
                             viewModel.forward()
+                        }
+                        
+                        CustomButton(image: "15.arrow.trianglehead.clockwise", size: .title2) {
+                            viewModel.fastForwardAudio()
                         }
                     }
                 }
